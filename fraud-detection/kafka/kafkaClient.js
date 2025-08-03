@@ -16,8 +16,6 @@ export async function connectKafka() {
         await producer.connect();
         await consumer.connect();
       
-        // Example subscription
-        await consumer.subscribe({ topic: 'transactions', fromBeginning: true });
     } catch(error) {
         console.error(chalk.red('Error connecting to Kafka:', error));
         throw error;

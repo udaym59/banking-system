@@ -1,4 +1,3 @@
-// fraudRules.test.js
 import { evaluateFraud } from './fraudRules.js';
 
 describe('Fraud Detection Logic', () => {
