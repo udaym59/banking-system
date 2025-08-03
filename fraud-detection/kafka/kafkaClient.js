@@ -10,12 +10,14 @@ export const kafka = new Kafka({
 
 export const producer = kafka.producer();
 export const consumer = kafka.consumer({ groupId: process.env.KAFKA_GROUP_ID || 'fraud-detector-group' });
+export const admin = kafka.admin();
 
 export async function connectKafka() {
     try {
         await producer.connect();
         await consumer.connect();
       
+
     } catch(error) {
         console.error(chalk.red('Error connecting to Kafka:', error));
         throw error;

@@ -1,6 +1,6 @@
 import express from 'express';
 import { getFraudByUserId, getFrauds } from '../services/fraudsService.js';
-import { producer } from '../kafka/kafkaClient.js';
+import { admin, producer } from '../kafka/kafkaClient.js';
 
 const router = express.Router();
 
@@ -29,8 +29,34 @@ router.get('/frauds/:userId', (req, res) => {
         });
 });
 
-router.get('/health', (req, res) => {
+router.get('/health', async (req, res) => {
+    const health = {
+    status: 'UP',
+    components: {
+      kafka: {
+        status: 'UP',
+      },
+    },
+  };
 
+  try {
+    await admin.connect();
+    const topics = await admin.listTopics();
+
+    const requiredTopic = 'transactions';
+    if (!topics.includes(requiredTopic)) {
+      throw new Error(`Required topic "${requiredTopic}" not found`);
+    }
+
+    await admin.disconnect();
+  } catch (err) {
+    health.status = 'DOWN';
+    health.components.kafka.status = 'DOWN';
+    health.components.kafka.error = err.message;
+    return res.status(503).json(health);
+  }
+
+  res.json(health);
 })
 
 router.post('/newtxn', (req, res) => {

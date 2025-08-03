@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 
-app.use('/api', router);
+app.use('/', router);
 // Prometheus Metrics Endpoint
 app.get('/metrics', async (req, res) => await metricsEndpoint(req, res));
 
