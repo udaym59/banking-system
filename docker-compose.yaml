@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"  # For clients on host
+      - "9093:9093"  # KRaft controller port (usually not used externally)
+      - "9094:9094"  # For clients on host
+    environment:
+      # KRaft Mode config
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_NODE_ID: 1
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093  # Use service name, not localhost
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      # --- The two lines below are crucial ---
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9094
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      # ---
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      CLUSTER_ID: "Mk3OEYBSD34fcwNTJENDM2Qk"  # Or generate your own with kafka-storage.sh random-uuid
+    volumes:
+      - ./data:/var/lib/kafka/data
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8081:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092  # Docker-internal hostname:port!
+    depends_on:
+      - kafka
